@@ -249,7 +249,7 @@ class MovieLib(FfmpegPlugin):
         self.audio_lst.append(audio_file)
 
     def add_pic(self, pic_dir):
-        self.image_list.extend(sorted(python_box.dir_list(pic_dir, "jpg$", walk=True)))
+        self.image_list.extend(sorted(python_box.dir_list(pic_dir, "(jpg$|png$|JPG$|PNG$)", walk=True), key=lambda x: os.path.basename(x)))
         if not self.out_video_file:
             self.set_out(os.path.dirname(pic_dir))
 
@@ -386,7 +386,6 @@ class MovieLib(FfmpegPlugin):
         time_line = compute_time_line(np_time, np_speed, self.image_list, audio_clip.duration)
         yield 1 / 4
 
-        self.image_list.sort()
         image_clips = []
         for i in range(len(self.image_list)):
             yield 1 / 4 + i / len(self.image_list) * 1 / 2
@@ -423,7 +422,6 @@ class MovieLib(FfmpegPlugin):
         time_line = beat_times(self.temp_audio_file)
         audio_clip.duration = time_line[-1]
         yield 1 / 4
-        self.image_list.sort()
         image_clips = []
         # 设置图片时长
         for i in range(len(self.image_list)):
@@ -493,18 +491,25 @@ if __name__ == "__main__":
         try:
             if len(movie_tool.image_list) == 0 or len(movie_tool.audio_lst) == 0:
                 gui.message().showinfo(title="配置未完成", message=f"未配置图片和背景音乐")
+                win.root.after(0, lambda: gui.message().showinfo(
+                    title="配置未完成",
+                    message="未配置图片和背景音乐"
+                ))
                 return
             progressbar = Progressbar(win.root)
-            win.add_text(rf"生成中。。。")
+            win.root.after(0, lambda: win.add_text(rf"生成中。。。"))
+
             progressbar.pack()
             for i in movie_tool.run(mode.get('')):
                 progressbar["value"] = i * 100
-            win.add_text(rf"完成!生成视频在 {movie_tool.out_video_file}")
-            gui.message().showinfo(title="完成", message=f"文件保存在：{movie_tool.out_video_file}")
+            win.root.after(0, lambda: win.add_text(rf"完成!生成视频在 {movie_tool.out_video_file}"))
+            win.root.after(0, lambda: gui.message().showinfo(title="完成", message=f"文件保存在：{movie_tool.out_video_file}"))
         except Exception as e:
             traceback.print_exc()
-            gui.message().showinfo(title="错误", message=e)
-            win.add_text(rf"错误")
+            win.root.after(0, lambda: gui.message().showinfo(title="错误", message=e))
+            win.root.after(0, lambda: win.add_text(rf"错误"))
+
+
 
 
     win.add_buton("开始", lambda: (
