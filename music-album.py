@@ -482,9 +482,9 @@ if __name__ == "__main__":
     mode_button = win.add_buton(f"模式{mode['']}：{'节奏优先' if mode[''] == 1 else '时长对齐'}", lambda: (
         mode.__setitem__('', 2 if mode.get('') == 1 else 1),
         mode_button.config(text=f"模式{mode['']}：{'节奏优先' if mode[''] == 1 else '时长对齐'}")))
-    adapt_button = win.add_buton(f"画幅：{'视频优先' if movie_tool.adapt_full_view else '照片优先'}", lambda: (
+    adapt_button = win.add_buton(f"画幅：{'黑边补充' if movie_tool.adapt_full_view else '照片适配'}", lambda: (
         movie_tool.set_adapt_full_view(not movie_tool.adapt_full_view),
-        adapt_button.config(text=f"画幅：{'视频优先' if movie_tool.adapt_full_view else '照片优先'}")))
+        adapt_button.config(text=f"画幅：{'黑边补充' if movie_tool.adapt_full_view else '照片适配'}")))
 
 
     def on_button_click():
