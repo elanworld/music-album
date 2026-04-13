@@ -1,17 +1,57 @@
 # generate from base common code
+import threading
+import ctypes
+import logging
 import os
 import collections
 import datetime
 import io
-import logging
 import string
-import threading
 import time
 from typing import Union, AnyStr, Optional
 from typing.io import IO
 import re
-import ctypes
 import platform
+def thread_runner(method, *args, **kwargs):
+    threads = []
+    if type(method) == list:
+        for method in method:
+            thread = threading.Thread(target=method, args=args, kwargs=kwargs)
+            threads.append(thread)
+    else:
+        thread = threading.Thread(target=method, args=args, kwargs=kwargs)
+        threads.append(thread)
+    for thread in threads:
+        thread.start()
+    return threads
+def log(msg, file=None, console=True, fmt='%(asctime)s - %(levelname)s - %(message)s', flush_now=True):
+    """日志打印"""
+    handlers = logging.root.handlers
+    if not any(h.get_name() == "base_log_handler" for h in handlers):
+        # 已存在当前方法的handle
+        for h in handlers:
+            logging.root.removeHandler(h)
+        if file:
+            dirname = os.path.dirname(file)
+            os.makedirs(dirname, exist_ok=True)
+            file_handler = logging.FileHandler(file, mode='a', encoding="utf-8")
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(logging.Formatter(fmt))
+            file_handler.set_name("base_log_handler")
+            logging.root.addHandler(file_handler)
+
+        if console:
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.INFO)
+            console_handler.setFormatter(logging.Formatter(fmt))
+            console_handler.set_name("base_log_handler")
+            logging.root.addHandler(console_handler)
+        handlers = logging.root.handlers
+        logging.basicConfig(format='%(levelname)s - %(message)s', level=logging.DEBUG)
+    logging.info(msg)
+    if flush_now:
+        for h in handlers:
+            h.flush()
 def dir_list(directory=None, filter_str="", return_full_path=True, walk=False, return_dir=False):
     if directory is None:
         directory = "."

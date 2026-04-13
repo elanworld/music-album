@@ -15,7 +15,7 @@ def message():
     return tkinter.messagebox
 def _top():
     global root
-    win = root if root else tkinter.Tk()
+    win = win = root if 'root' in globals() else tkinter.Tk()
     win.withdraw()
     return win
 def select_dir(title="选择路径", use_argv=None):
@@ -25,6 +25,13 @@ def select_dir(title="选择路径", use_argv=None):
             return sys.argv[use_argv]
     root = _top()
     return filedialog.askdirectory(title=title)
+def select_file(title="选择文件", use_argv=None):
+    global root
+    if use_argv:
+        if len(sys.argv) > use_argv:
+            return sys.argv[use_argv]
+    root = _top()
+    return filedialog.askopenfilename(title=title)
 class ComWin:
     def __init__(self, root: tkinter.Tk = None, width: int = None, height: int = None, title=None):
         self.root = root  # type: tkinter.Tk
