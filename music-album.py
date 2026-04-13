@@ -1,8 +1,12 @@
 # 根据图片和音乐合成带节奏的相册视频
+import math
+import os
 import re
+import sys
 import threading
 import traceback
 import wave
+import time
 from tkinter.ttk import Progressbar
 from typing import Tuple, Union, Any
 
@@ -234,7 +238,7 @@ class MovieLib(FfmpegPlugin):
         # 速度变化敏感度
         self.sens = 0.6
         # 视频适配无黑边
-        self.adapt_full_view = False
+        self.adapt_full_view = True
 
     def set_adapt_full_view(self, adapt_full_view):
         self.adapt_full_view = adapt_full_view
@@ -472,9 +476,10 @@ if __name__ == "__main__":
     text = win.add_text("")
     text_change = lambda: text.config(
         text=f"音乐：{[os.path.basename(f) for f in movie_tool.audio_lst]}\n图片：{set(os.path.dirname(f) for f in movie_tool.image_list)}")
-    win.add_buton("选择图片目录", lambda: (
+    pic_button = win.add_buton("选择图片目录", lambda: (
         movie_tool.add_pic(gui.select_dir("选择图片所在位置目录")), text_change()
     ))
+    pic_button.on
     win.add_buton("选择背景音乐", lambda: (
         movie_tool.add_bgm(gui.select_file("选择音乐文件")), text_change()
     ))
@@ -482,9 +487,9 @@ if __name__ == "__main__":
     mode_button = win.add_buton(f"模式{mode['']}：{'节奏优先' if mode[''] == 1 else '时长对齐'}", lambda: (
         mode.__setitem__('', 2 if mode.get('') == 1 else 1),
         mode_button.config(text=f"模式{mode['']}：{'节奏优先' if mode[''] == 1 else '时长对齐'}")))
-    adapt_button = win.add_buton(f"画幅：{'黑边补充' if movie_tool.adapt_full_view else '照片适配'}", lambda: (
+    adapt_button = win.add_buton(f"画幅：{'照片适配' if movie_tool.adapt_full_view else '黑边补充'}", lambda: (
         movie_tool.set_adapt_full_view(not movie_tool.adapt_full_view),
-        adapt_button.config(text=f"画幅：{'黑边补充' if movie_tool.adapt_full_view else '照片适配'}")))
+        adapt_button.config(text=f"画幅：{'照片适配' if movie_tool.adapt_full_view else '黑边补充'}")))
 
 
     def on_button_click():

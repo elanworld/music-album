@@ -1,0 +1,20 @@
+name: music-album
+# conda env create -f environment_py38.yml
+# conda activate music-album
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+    - imageio==2.10.5
+    - moviepy==1.0.2
+    - progressbar2
+    - psutil
+    - pyinstaller
+    - librosa
+    - scikit-image==0.19.3
+    - numpy==1.24.4
+    - scipy==1.10.1
+    - Pillow==9.5.0
+    - setuptools<70

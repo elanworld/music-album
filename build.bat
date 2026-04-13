@@ -1,1 +1,1 @@
-pyinstaller -w -F --collect-data librosa music-album.py
+pyinstaller --collect-data librosa music-album.py
