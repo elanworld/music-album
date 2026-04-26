@@ -239,6 +239,8 @@ class MovieLib(FfmpegPlugin):
         self.sens = 0.6
         # 视频适配无黑边
         self.adapt_full_view = True
+        self.width_height = (int(1080 * 4 / 3), 1080)
+        self.ext_data = {}
 
     def set_adapt_full_view(self, adapt_full_view):
         self.adapt_full_view = adapt_full_view
@@ -427,24 +429,43 @@ class MovieLib(FfmpegPlugin):
         audio_clip.duration = time_line[-1]
         yield 1 / 4
         image_clips = []
+        text_img_time = []
         # 设置图片时长
         for i in range(len(self.image_list)):
+            # 进度更新
             yield 1 / 4 + i / len(self.image_list) * 1 / 2
-            image_clip = moviepy.editor.ImageClip(self.image_list[i])
-            if i + 1 > len(time_line) - 1:
+
+            # 如果图片数量超过了节奏点的数量，直接跳出，防止报错
+            if i >= len(time_line):
                 break
+
+            image_clip = moviepy.editor.ImageClip(self.image_list[i])
             image_clip = self.crop_clip(image_clip, width, height)
-            image_clip.start = time_line[i]
-            image_clip.duration = time_line[i + 1] - time_line[i]
             image_clip.fps = 1
+
+            # [核心修改] 设置时长逻辑
+            if i == 0:
+                # 第一张图：从0开始，到第一个节拍点
+                image_clip.duration = time_line[0]
+                if self.ext_data.get("export"):
+                    text_img_time.append(f"{float(0)} -> {self.image_list[i]}")
+            else:
+                # 后续图片：从上一个节拍点，到当前节拍点
+                image_clip.duration = time_line[i] - time_line[i - 1]
+                if self.ext_data.get("export"):
+                    text_img_time.append(f"{time_line[i]:.1f} -> {self.image_list[i]}")
+
             image_clips.append(image_clip)
         video_clip = moviepy.editor.concatenate_videoclips(image_clips)
         yield 3 / 4
         audio_clip.duration = video_clip.duration
         video_clip.audio = audio_clip
-        video_clip.write_videofile(self.out_video_file, fps=5)
+        video_clip.write_videofile(self.out_video_file, fps=10)
         yield 1
         os.remove(self.temp_audio_file)
+        if self.ext_data.get("export"):
+            with open(self.out_video_file + "_time_stamp.txt", "w", encoding="utf-8") as f:
+                f.write("\n".join(text_img_time))
         return self.out_video_file
 
     def run(self, mode=1):
@@ -455,7 +476,7 @@ class MovieLib(FfmpegPlugin):
         :return:
         """
         if mode == 1:
-            return self.generate_video_from_beat()
+            return self.generate_video_from_beat(self.width_height[0], self.width_height[1])
         else:
             return self.generate_video()
 
@@ -479,7 +500,6 @@ if __name__ == "__main__":
     pic_button = win.add_buton("选择图片目录", lambda: (
         movie_tool.add_pic(gui.select_dir("选择图片所在位置目录")), text_change()
     ))
-    pic_button.on
     win.add_buton("选择背景音乐", lambda: (
         movie_tool.add_bgm(gui.select_file("选择音乐文件")), text_change()
     ))
@@ -490,6 +510,13 @@ if __name__ == "__main__":
     adapt_button = win.add_buton(f"画幅：{'照片适配' if movie_tool.adapt_full_view else '黑边补充'}", lambda: (
         movie_tool.set_adapt_full_view(not movie_tool.adapt_full_view),
         adapt_button.config(text=f"画幅：{'照片适配' if movie_tool.adapt_full_view else '黑边补充'}")))
+    win.add_text("宽高像素：")
+    width_entry = win.add_input(movie_tool.width_height[0])
+    height_entry = win.add_input(movie_tool.width_height[1])
+    buton_export = win.add_buton(title="导处照片时间戳" if movie_tool.ext_data.get("export") else "不导处照片时间戳",
+                                 on_button_click_callback=lambda: (
+                                     movie_tool.ext_data.__setitem__("export", not movie_tool.ext_data.get("export")), buton_export.config(
+                              text="导处照片时间戳" if movie_tool.ext_data.get("export") else "不导处照片时间戳")))
 
 
     def on_button_click():
@@ -501,6 +528,7 @@ if __name__ == "__main__":
                     message="未配置图片和背景音乐"
                 ))
                 return
+            movie_tool.width_height = (int(width_entry.get()), int(height_entry.get()))
             progressbar = Progressbar(win.root)
             win.root.after(0, lambda: win.add_text(rf"生成中。。。"))
 

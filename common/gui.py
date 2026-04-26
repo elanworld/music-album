@@ -71,3 +71,20 @@ class ComWin:
         button = tk.Button(self.root, text=title, command=on_button_click_callback)
         button.pack()
         return button
+
+    def add_input(self, default_text="") -> tk.Entry:
+        """
+        创建一个输入框
+        :param default_text: 默认显示的文本
+        :param width: 输入框宽度
+        :return: tk.Entry 对象
+        """
+        # 创建一个输入框
+        entry = tk.Entry(self.root)
+
+        # 如果有默认文本，将其插入到输入框中
+        if default_text:
+            entry.insert(0, default_text)
+
+        entry.pack()
+        return entry
