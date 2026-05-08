@@ -15,7 +15,7 @@ def message():
     return tkinter.messagebox
 def _top():
     global root
-    win = win = root if 'root' in globals() else tkinter.Tk()
+    win = root if 'root' in globals() else tkinter.Tk()
     win.withdraw()
     return win
 def select_dir(title="选择路径", use_argv=None):
@@ -88,3 +88,7 @@ class ComWin:
 
         entry.pack()
         return entry
+    def add_separator(self):
+        line = tk.Frame(self.root, height=1, bg="#cccccc")
+        line.pack(fill="x", padx=5, pady=10)
+        return line
